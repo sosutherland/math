@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abacus</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000000;
+            font-family: Arial, sans-serif;
+        }
+
+        .abacus {
+            display: flex;
+            align-items: center;
+            position: relative;
+            border-top: 4px solid #808080;
+            border-bottom: 4px solid #808080;
+        }
+
+        .line {
+            position: absolute;
+            top: 64px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #808080;
+        }
+
+        .rod {
+            width: 4px;
+            height: 234px;
+            background-color: #808080;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .bead {
+            width: 30px;
+            height: 30px;
+            background-color: #FFFFFF;
+            position: absolute;
+            left: -13px;
+        }
+
+        .bead:nth-of-type(1) {
+            top: 0px;
+        }
+
+        .bead:nth-of-type(2) {
+            bottom: 102px;
+        }
+
+        .bead:nth-of-type(3) {
+            bottom: 68px;
+        }
+
+        .bead:nth-of-type(4) {
+            bottom: 34px;
+        }
+
+        .bead:nth-of-type(5) {
+            bottom: 0px;
+        }
+
+        .bead.active:nth-of-type(1) {
+            transform: translateY(34px);
+        }
+
+        .bead.active {
+            transform: translateY(-34px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="abacus" id="abacus">
+        <div class="line"></div>
+    </div>
+    <script>
+        function createAbacus() {
+            const abacus = document.getElementById('abacus');
+            for (let i = 0; i < 13; i++) {
+                const rod = document.createElement('div');
+                rod.className = 'rod';
+                for (let j = 0; j < 5; j++) {
+                    const bead = document.createElement('div');
+                    bead.className = 'bead';
+                    if (j == 1 && (i == 1 || i == 4 || i == 7 || i == 10)) {
+                        bead.style.backgroundColor = '#FF0000';
+                    }
+                    bead.onmousedown = function () {
+                        let beads = [...bead.parentElement.children];
+                        let index = beads.indexOf(bead);
+                        if (index == 0) {
+                            bead.classList.toggle('active');
+                        } else if (bead.classList.contains('active')) {
+                            for (; index < 5; index++) {
+                                beads[index].classList.remove('active');
+                            }
+                        } else {
+                            for (; index > 0; index--) {
+                                beads[index].classList.add('active');
+                            }
+                        }
+                    }
+                    rod.appendChild(bead);
+                }
+                abacus.appendChild(rod);
+            }
+            document.onmousedown = function (event) {
+                if (!abacus.contains(event.target)) {
+                    document.querySelectorAll('.bead').forEach(function(bead) {
+                        bead.classList.remove('active');
+                    });
+                }
+            }
+        }
+        createAbacus();
+    </script>
+</body>
+
+</html>
