@@ -7,49 +7,82 @@
     <title>Math</title>
     <style>
         body {
-            display: flex;
-            height: 100vh;
             margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
             background-color: #000000;
         }
 
-        .container {
+        #top {
             display: flex;
-            flex: 1;
-            flex-direction: column;
-            align-items: center;
+            gap: 50px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%
         }
 
-        table {
-            width: 118px;
-            color: white;
-            text-align: right;
+        #center {
+            max-width: 572px;
+            width: 100%;
+            height: 242px;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        #button {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            cursor: default;
             -webkit-user-select: none;
-            -ms-user-select: none;
+            -moz-user-select: none;
             user-select: none;
-            border-collapse: collapse;
+        }
+
+        #label {
+            color: #FFFFFF;
             font-size: 16px;
             font-family: Menlo, monospace;
+            line-height: 50px;
+            flex-grow: 1;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
         }
 
-        .box {
-            display: flex;
-            flex: 1;
-            padding: 20px;
-            box-sizing: border-box;
-            justify-content: center;
-            align-items: center;
+        #input {
+            color: #000000;
+            font-size: 16px;
+            font-family: Menlo, monospace;
+            line-height: 50px;
+            background-color: #000000;
+            border: none;
+            padding: 0;
+            margin: 0;
+            outline: none;
+            flex-grow: 1;
         }
 
-        .abacus {
+        #input:focus {
+            color: #FFFFFF;
+        }
+
+        #soroban {
             display: flex;
             align-items: center;
             position: relative;
+            width: 572px;
+            height: 234px;
             border-top: 4px solid #808080;
             border-bottom: 4px solid #808080;
         }
 
-        .line {
+        .bar {
             position: absolute;
             top: 64px;
             left: 0;
@@ -105,123 +138,162 @@
 </head>
 
 <body>
-    <div class="container">
-        <table>
-            <tr>
-                <td id="oper"></td>
-            </tr>
-            <tr>
-                <td id="num1"></td>
-            </tr>
-            <tr>
-                <td id="num2"></td>
-            </tr>
-        </table>
-        <div class="box">
-            <div class="abacus" id="abacus">
-                <div class="line"></div>
-            </div>
+    <div id="top">
+        <div id="button"></div>
+        <label id="label" style="display: none;"></label>
+        <input type="text" id="input" style="display: none;">
+    </div>
+    <div id="center">
+        <div id="soroban">
+            <div class="bar"></div>
         </div>
     </div>
     <script>
-        function createAbacus() {
-            const abacus = document.getElementById('abacus');
-            for (let i = 0; i < 9; i++) {
-                const rod = document.createElement('div');
-                rod.className = 'rod';
+        let mode = 1;
+        let answer;
+        let interval;
+        const div_label = document.getElementById("label");
+        const div_input = document.getElementById("input");
+        window.onload = create_soroban;
+        document.onmousedown = reset_soroban;
+        document.getElementById("button").onclick = next_mode;
+        div_label.onmousedown = next_problem;
+        div_input.onfocus = reset_anzan;
+        div_input.onblur = next_anzan;
+        function create_soroban() {
+            const soroban = document.getElementById("soroban");
+            for (let i = 0; i < 13; i++) {
+                const rod = document.createElement("div");
+                rod.className = "rod";
                 for (let j = 0; j < 5; j++) {
-                    const bead = document.createElement('div');
-                    bead.className = 'bead';
-                    if (j === 1 && (i === 0 || i === 3 || i === 6)) {
-                        bead.style.backgroundColor = '#FF0000';
+                    const bead = document.createElement("div");
+                    bead.className = "bead";
+                    if (j === 1 && (i % 3 === 1)) {
+                        bead.style.backgroundColor = "#FF0000";
                     }
-                    bead.onmousedown = function () {
+                    bead.onmousedown = () => {
                         let beads = [...bead.parentElement.children];
                         let index = beads.indexOf(bead);
                         if (index === 0) {
-                            bead.classList.toggle('active');
-                        } else if (bead.classList.contains('active')) {
+                            bead.classList.toggle("active");
+                        } else if (bead.classList.contains("active")) {
                             for (; index < 5; index++) {
-                                beads[index].classList.remove('active');
+                                beads[index].classList.remove("active");
                             }
                         } else {
                             for (; index > 0; index--) {
-                                beads[index].classList.add('active');
+                                beads[index].classList.add("active");
                             }
                         }
                     }
                     rod.appendChild(bead);
                 }
-                abacus.appendChild(rod);
-            }
-            document.onmousedown = function (event) {
-                if (!abacus.contains(event.target)) {
-                    const num1String = document.getElementById("num1").innerText;
-                    const num2String = document.getElementById("num2").innerText;
-                    const num1 = Number(num1String.replace(/,/g, ''));
-                    const num2 = Number(num2String.replace(/,/g, ''));
-                    if (document.getElementById("oper").innerText === '+') {
-                        var answer = num1 + num2;
-                    } else if (document.getElementById("oper").innerText === '-') {
-                        var answer = num1 - num2;
-                    } else if (document.getElementById("oper").innerText === '*') {
-                        var answer = num1 * num2;
-                    } else {
-                        var answer = num1 / num2;
-                    }
-                    if (answer === abacusNumber()) {
-                        nextProblem();
-                    }
-                    document.querySelectorAll('.bead').forEach(function (bead) {
-                        bead.classList.remove('active');
-                    });
-                }
+                soroban.appendChild(rod);
             }
         }
-        function abacusNumber() {
-            const rods = document.getElementsByClassName("rod");
-            let numString = "";
-            for (let i = 0; i < 9; i++) {
-                let beads = [...rods[i].children];
-                let num = (beads[0].classList.contains('active')) ? 5 : 0;
-                for(let j = 1; j < 5; j++) {
-                    if (beads[j].classList.contains('active')) {
-                        num++;
-                    }
-                }
-                numString += String.fromCharCode(num + 48);
-                if (i == 6) {
-                    numString += ".";
-                }
+        function create_anzan() {
+            reset_anzan();
+            let sum = 0;
+            let num = Math.floor(Math.random() * 99) + 1;
+            let string = "1000 10";
+            for (let i = 0; i < 10; i++) {
+                sum += num;
+                string = string + " " + sum;
             }
-            return Number(numString);
+            for (let i = 0; i < 10; i++) {
+                sum -= num;
+                string = string + " " + sum;
+            }
+            div_input.value = string;
+            next_anzan();
         }
-        function nextProblem() {
-            const operation = Math.floor(Math.random() * 3);
+        function reset_soroban() {
+            if (mode === 3) {
+                return;
+            }
+            const top = document.getElementById("top");
+            const center = document.getElementById("center");
+            if (!top.contains(event.target) && !center.contains(event.target)) {
+                document.querySelectorAll(".bead").forEach((bead) => {
+                    bead.classList.remove("active");
+                });
+            }
+        }
+        function reset_anzan() {
+            clearInterval(interval);
+            document.querySelectorAll(".bead").forEach((bead) => {
+                bead.classList.remove("active");
+            });
+        }
+        function next_mode() {
+            mode = (mode % 3) + 1;
+            if (mode === 1) {
+                document.getElementById("input").style.display = "none";
+                reset_anzan();
+            } else if (mode === 2) {
+                document.getElementById("label").style.display = "block";
+                next_problem();
+            } else if (mode === 3) {
+                document.getElementById("label").style.display = "none";
+                document.getElementById("input").style.display = "block";
+                create_anzan();
+            }
+        }
+        function next_problem() {
+            document.querySelectorAll(".bead").forEach((bead) => {
+                bead.classList.remove("active");
+            });
+            const operation = Math.floor(Math.random() * 4);
             if (operation === 0) {
-                var oper = "+";
-                var num1 = Math.floor(Math.random() * 4999999) + 1;
-                var num2 = Math.floor(Math.random() * 4999999) + 1;
+                let num1 = Math.floor(Math.random() * 999999) + 1;
+                let num2 = Math.floor(Math.random() * 999999) + 1;
+                answer = num1 + num2;
+                div_label.textContent = num1 + " + " + num2 + " = " + answer;
             } else if (operation === 1) {
-                var oper = "-";
-                var num1 = Math.floor(Math.random() * 4999999) + 1;
-                var num2 = Math.floor(Math.random() * 4999999) + 1;
-                if (num2 > num1) {
-                    [num1, num2] = [num2, num1];
-                }
+                let num1 = Math.floor(Math.random() * 999999) + 1;
+                let num2 = Math.floor(Math.random() * 999999) + 1;
+                [num1, num2] = [Math.max(num1, num2), Math.min(num1, num2)];
+                answer = num1 - num2;
+                div_label.textContent = num1 + " - " + num2 + " = " + answer;
             } else if (operation === 2) {
-                var oper = "*";
-                var num1 = Math.floor(Math.random() * 3161) + 1;
-                var num2 = Math.floor(Math.random() * (9999999 / num1));
-            } else {
-                var oper = "/";
+                let num1 = Math.floor(Math.random() * 99) + 1;
+                let num2 = Math.floor(Math.random() * 999) + 1;
+                answer = num1 * num2;
+                div_label.textContent = num1 + " * " + num2 + " = " + answer;
+            } else if (operation === 3) {
+                let num1 = Math.floor(Math.random() * 999999) + 1;
+                let num2 = Math.floor(Math.random() * 999) + 1;
+                answer = num1 / num2;
+                div_label.textContent = num1 + " / " + num2 + " = " + answer.toFixed(2);
             }
-            document.getElementById("oper").innerText = oper;
-            document.getElementById("num1").innerText = num1.toLocaleString();
-            document.getElementById("num2").innerText = num2.toLocaleString();
         }
-        createAbacus();
-        nextProblem();
+        function next_anzan() {
+            let index = 0;
+            let nums = div_input.value.split(" ");
+            const delay = nums.shift();
+            const position = nums.shift();
+            const rods = document.getElementsByClassName("rod");
+            clearInterval(interval);
+            interval = setInterval(() => {
+                document.querySelectorAll(".bead").forEach((bead) => {
+                    bead.classList.remove("active");
+                });
+                let num = nums[index];
+                let n_digits = num.length;
+                for (let i = 0; i < n_digits; i++) {
+                    let beads = [...rods[position - n_digits + i + 1].children];
+                    let n = Math.floor(num[i] / 5);
+                    if (n === 1) {
+                        beads[0].onmousedown();
+                    }
+                    n = num[i] % 5;
+                    if (n > 0) {
+                        beads[n].onmousedown();
+                    }
+                }
+                index = (index + 1) % nums.length;
+            }, delay);
+        }
     </script>
 </body>
 
